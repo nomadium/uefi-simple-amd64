@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+  schedule:
+  - cron: "16 5 * * *"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: install dependencies
+      run: |
+          sudo apt update --yes
+          sudo apt install -o Acquire::Retries=3 --yes \
+              build-essential         \
+              git                     \
+              gcc-mingw-w64-bootstrap \
+              qemu-system-x86         \
+              ovmf                    \
+    - name: make
+      run: make
+    - name: make qemu
+      run: sh -c 'timeout 30s make qemu || true &' 2>&1 | tee output
+    - name: check expected output
+      run: |
+          git grep --quiet --no-index --all-match \
+              -e 'Hello World' \
+              output
