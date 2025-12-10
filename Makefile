@@ -1,15 +1,27 @@
-CC = x86_64-w64-mingw32-gcc
-CFLAGS = -shared -nostdlib -mno-red-zone -fno-stack-protector -Wall \
-         -e EfiMain
+INCLUDE_DIRS = -I/usr/include/efi
+LIB_DIRS     = -L/usr/lib
+LDSCRIPT     = /usr/lib/elf_x86_64_efi.lds
+CRT_EFI      = /usr/lib/crt0-efi-x86_64.o
+
+CFLAGS  =  $(INCLUDE_DIRS) -fpic -ffreestanding -fno-stack-protector
+CFLAGS += -fno-stack-check -fshort-wchar -mno-red-zone
+CFLAGS += -maccumulate-outgoing-args -Wall
+LDFLAGS = -shared -Bsymbolic $(LIB_DIRS) -T$(LDSCRIPT) $(CRT_EFI) -lgnuefi -lefi
+
 OVMF = /usr/share/ovmf/OVMF.fd
 
 all: main.efi
 
-%.efi: %.dll
-	objcopy --target=efi-app-x86_64 $< $@
+%.efi: %.so
+	objcopy -j .text -j .sdata -j .data  -j .rodata -j .dynamic -j .dynsym \
+		-j .rel  -j .rela  -j .rel.* -j .rela.* -j .reloc \
+		--target efi-app-x86_64 --subsystem=10 $< $@
 
-%.dll: %.c
-	$(CC) $(CFLAGS) $< -o $@
+%.o: %.c
+	$(CC) $(CFLAGS) -c $<
+
+%.so: %.o
+	$(LD) $(LDFLAGS) $< -o $@
 
 qemu: main.efi image/EFI/BOOT/BOOTX64.EFI
 	qemu-system-x86_64 -nographic -bios $(OVMF) \
@@ -20,5 +32,5 @@ image/EFI/BOOT/BOOTX64.EFI:
 	ln -sf ../../../main.efi image/EFI/BOOT/BOOTX64.EFI
 
 clean:
-	rm -f main.efi
+	rm -f main.efi main.so main.o
 	rm -rf image

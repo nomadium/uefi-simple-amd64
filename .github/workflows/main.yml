@@ -22,7 +22,7 @@ jobs:
           sudo apt install -o Acquire::Retries=3 --yes \
               build-essential         \
               git                     \
-              gcc-mingw-w64-bootstrap \
+              gnu-efi                 \
               qemu-system-x86         \
               ovmf                    \
     - name: make
