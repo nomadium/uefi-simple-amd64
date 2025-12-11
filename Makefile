@@ -24,7 +24,7 @@ all: main.efi
 	$(LD) $(LDFLAGS) $< -o $@
 
 qemu: main.efi image/EFI/BOOT/BOOTX64.EFI
-	qemu-system-x86_64 -nographic -bios $(OVMF) \
+	qemu-system-x86_64 -machine q35 -nographic -bios $(OVMF) \
 		-drive file=fat:rw:image,media=disk,format=raw
 
 image/EFI/BOOT/BOOTX64.EFI:
