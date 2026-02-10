@@ -1,10 +1,14 @@
 #include <efi.h>
 #include <efilib.h>
 
-/* https://wiki.osdev.org/GNU-EFI#Creating_an_EFI_executable */
-
+/*
+ * efi_main - UEFI application entry point
+ *
+ * Note: Do NOT use EFIAPI attribute here. gnu-efi's crt0 converts from
+ * MS x64 ABI to System V AMD64 ABI before calling efi_main.
+ * EFIAPI is only for function pointers that call into UEFI firmware.
+ */
 EFI_STATUS
-EFIAPI
 efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 {
     InitializeLib(ImageHandle, SystemTable);
